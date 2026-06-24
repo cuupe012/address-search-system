@@ -1,3 +1,9 @@
+<?php
+
+require_once("search_address.php");
+
+?>
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -15,13 +21,16 @@
             background-color: #fff;
         }
 
+        
+        form {
+            display: block;
+        }
+
         .system-panel {
             width: 800px;
             height: 500px;
             border: 1px solid #333;
-
             background: linear-gradient(180deg, #fff 0%, #7f7f7f 100%);
-
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -35,7 +44,6 @@
             font-style: italic;
             color: #000;
             margin: 0;
-
             text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
         }
 
@@ -78,22 +86,20 @@
             height: 35px;
             cursor: pointer;
             font-size: 20px;
-
             display: flex;
             align-items: center;
             justify-content: center;
         }
             
         .search-btn:hover {
-                background-color: #f0f0f0
-            } 
+            background-color: #f0f0f0;
+        } 
 
         .search-btn:active {
-                background-color:  #8d8d8d;
-                box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
-                transform: scale(0.95);
-            }
-        
+            background-color:  #8d8d8d;
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transform: scale(0.95);
+        }
 
         .result-box {
             background-color: #fff;
@@ -101,11 +107,9 @@
             border-radius: 15px;
             width: 550px;
             height: 55px;
-
             display: flex;
             justify-content: center;
             align-items: center;
-
             font-size: 15px;
             color: #7f7f7f;
         }
@@ -125,78 +129,51 @@
             color: #fff;
             padding: 0;
         }
-
-        
     </style>
 </head>
 
-
 <body>
-    <div class="system-panel">
+    
+    <form method="POST" action="">
+        <div class="system-panel">
+            <h1 class="title">Address Search System</h1>
+            <p class="subtitle">郵便番号から住所検索</p>
 
-        <h1 class="title">Address Search System</h1>
-        <p class="subtitle">郵便番号から住所検索</p>
-
-        <div class="search-area">
-            <span class="postal-mark">〒</span>
-            <input type="text" id="zipcode" class="zip-input" placeholder="郵便番号を入力">
-            <button class="search-btn" onclick="searchAddress()">🔍</button>
-        </div>
-
-        <div class="result-box" id="target-text">検索結果</div>
-
-        <div class="copy-container">
-            <button class="copy-link" onclick="copyText()">📃<u>Copy</u></button>
-        </div>
-
-    </div>
-
-    <script>
-        function copyText() {
-            const boxElement = document.getElementById('target-text');
-            const fullText = boxElement.innerText;
-            
-            const addressText = fullText.replace('📍', '').trim();
-
-            navigator.clipboard.writeText(addressText).then(() => {
+            <div class="search-area">
+                <span class="postal-mark">〒</span>
+                <input type="text" name="zipcode" class="zip-input" placeholder="郵便番号を入力" value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>">
                 
-                const btn = document.querySelector('.copy-link');
-                btn.innerHTML = '✅ <u>Copied!</u>';
+                <button type="submit" class="search-btn">🔍</button>
+            </div>
 
-                setTimeout(() => {
-                    btn.innerHTML = '📋 <u>Copy</u>';
-                }, 1500);
+            <div class="result-box" id="target-text"><?php echo isset($display_result) ? htmlspecialchars($display_result, ENT_QUOTES, 'UTF-8') : '検索結果'; ?></div>
 
-            }).catch(err => {
-                alert('コピーに失敗しました: ' + err);
-            });
-        }
+            <div class="copy-container">
+                <button type="button" class="copy-link" onclick="copyText(event)">📃<u>Copy</u></button>
+            </div>
+        </div>
+    </form>
 
-        function searchAddress() {
-    const zipcode = document.getElementById('zipcode').value;
-    const resultBox = document.getElementById('target-text');
+<script>
+    function copyText(event) {
+        event.preventDefault();
+        const boxElement = document.getElementById('target-text');            
+        const fullText = boxElement.innerText;
+        
+        if(fullText === "検索結果" || fullText === "検索結果がここに表示されます" || fullText.includes("❌")) return;
+            
+        const addressText = fullText.replace('📍', '').trim();
 
-    if (!zipcode) {
-        resultBox.innerText = '郵便番号を入力してください。';
-        return;
+        navigator.clipboard.writeText(addressText).then(() => {
+            const btn = document.querySelector('.copy-link');
+            btn.innerHTML = '✅ <u>Copied!</u>';
+            setTimeout(() => {
+                btn.innerHTML = '📋 <u>Copy</u>';
+            }, 1500);
+        }).catch(err => {
+            alert('コピーに失敗しました: ' + err);
+        });
     }
-
-    // 裏側で search_address.php を呼び出す（Ajax通信）
-    fetch('search_address.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'zipcode=' + encodeURIComponent(zipcode)
-    })
-    .then(response => response.text())
-    .then(data => {
-        // PHPから返ってきた結果を、白いボックスの中にそのまま表示する
-        resultBox.innerHTML = data;
-    })
-    .catch(error => {
-        resultBox.innerText = 'エラーが発生しました。';
-    });
-}
-    </script>
-
+</script>
 </body>
 </html>

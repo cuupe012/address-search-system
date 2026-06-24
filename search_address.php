@@ -1,110 +1,101 @@
 <?php
 require_once("db_connect.php");
 
-// 画面から送られてきた郵便番号をキャッチ
-$search_post_number = isset($_POST['zipcode']) ? $_POST['zipcode'] : "";
+$display_result = "検索結果";
 
-// ハイフン（- や ー）をすべて消去して数字だけの状態にする
-$search_post_number = str_replace(['-', 'ー'], '', $search_post_number);
+if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['zipcode'])) {
 
-if (strlen($search_post_number) === 7) {
+    $zip_converted = mb_convert_kana(trim($_POST['zipcode']), "n", "UTF-8");
+    $search_post_number = str_replace(["-", "ー", "－"], "", $zip_converted);
+    
+    if (preg_match("/^[0-9]{7}$/", $search_post_number)) {
+        try {
+           
+            $log_sql = "INSERT INTO search_logs (post_number) VALUES (?)";
+            $log_stmt = $pdo->prepare($log_sql);
+            $log_stmt->execute([$search_post_number]);
 
-    try {
-        // ==========================================
-        // 🌐 1. 【課題①】まずは速攻でAPIから最新の住所データを取得する！
-        // ==========================================
-        $api_url = "https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=" . $search_post_number;
-        $response = @file_get_contents($api_url);
-        
-        if ($response !== false) {
-            $data = json_decode($response, true);
+           
+            $sql = "SELECT a.post_number, p.prefecture, c.city, a.street FROM address AS a
+                    JOIN prefecture AS p ON a.prefecture_id = p.prefecture_id
+                    JOIN city AS c ON a.city_id = c.city_id
+                    WHERE a.post_number = ?";
 
-            // APIから無事に住所が返ってきた場合
-            if ($data && isset($data['response']['location'])) {
-                $location = $data['response']['location'][0];
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$search_post_number]);
+            $result = $stmt->fetch();
+
+            if ($result) {
                 
-                $api_pref  = $location['prefecture']; // 例：東京都
-                $api_city  = $location['city'];       // 例：新宿区
-                $api_town  = $location['town'];       // 例：西新宿
-
-                // ==========================================
-                // 🗄️ 2. 取得した住所をあなたの自作テーブル群に流し込む（保存）
-                // ==========================================
-                
-                // --- ① prefecture テーブルに登録 or 既に登録済ならID取得 ---
-                $p_stmt = $pdo->prepare("SELECT prefecture_id FROM prefecture WHERE prefecture = ?");
-                $p_stmt->execute([$api_pref]);
-                $p_row = $p_stmt->fetch();
-                
-                if ($p_row) {
-                    $prefecture_id = $p_row['prefecture_id'];
-                } else {
-                    $ins_p = $pdo->prepare("INSERT INTO prefecture (prefecture) VALUES (?)");
-                    $ins_p->execute([$api_pref]);
-                    $prefecture_id = $pdo->lastInsertId();
-                }
-
-                // --- ② city テーブルに登録 or 既に登録済ならID取得 ---
-                $c_stmt = $pdo->prepare("SELECT city_id FROM city WHERE city = ?");
-                $c_stmt->execute([$api_city]);
-                $c_row = $c_stmt->fetch();
-                
-                if ($c_row) {
-                    $city_id = $c_row['city_id'];
-                } else {
-                    $ins_c = $pdo->prepare("INSERT INTO city (city) VALUES (?)");
-                    $ins_c->execute([$api_city]);
-                    $city_id = $pdo->lastInsertId();
-                }
-
-                // --- ③ address テーブルに登録（重複エラー防止のため、なければ入れる形にすると安全です） ---
-                $a_stmt = $pdo->prepare("SELECT post_number FROM address WHERE post_number = ?");
-                $a_stmt->execute([$search_post_number]);
-                if (!$a_stmt->fetch()) {
-                    $ins_a = $pdo->prepare("INSERT INTO address (post_number, prefecture_id, city_id, street) VALUES (?, ?, ?, ?)");
-                    $ins_a->execute([$search_post_number, $prefecture_id, $city_id, $api_town]);
-                }
-
-                // ==========================================
-                // 🎯 3. 【真骨頂】保存されたあなたの自作DBから、JOINのSQLで住所を引っ張る！
-                // ==========================================
-                $sql = "SELECT a.post_number, p.prefecture, c.city, a.street FROM address AS a
-                        JOIN prefecture AS p ON a.prefecture_id = p.prefecture_id
-                        JOIN city AS c ON a.city_id = c.city_id
-                        WHERE a.post_number = ?";
-
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$search_post_number]);
-                $result = $stmt->fetch();
-
-                if ($result) {
-                    // 相方さんのデザインに合わせた形で画面に出力！
-                    echo "住所:" . htmlspecialchars($result["prefecture"] . $result["city"] . $result["street"], ENT_QUOTES, "UTF-8");
-
-                    // ==========================================
-                    // 🌟 4. 【課題②】検索履歴データ（search_logs）をDBに蓄積する
-                    // ==========================================
-                    try {
-                        $log_sql = "INSERT INTO search_logs (post_number) VALUES (?)";
-                        $log_stmt = $pdo->prepare($log_sql);
-                        $log_stmt->execute([$search_post_number]); 
-                    } catch (PDOException $e) {
-                        // 履歴保存のエラーは画面を壊さないようにスルー
-                    }
-                }
-
+                $display_result = "📍 " . $result["prefecture"] . $result["city"] . $result["street"];
             } else {
-                echo "該当する郵便番号の住所は見つかりませんでした。";
+               
+                $api_url = "https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=" . $search_post_number;
+
+                
+                $response = @file_get_contents($api_url);
+
+                if ($response !== false) {
+                    $data = json_decode($response, true);
+                    
+                   
+                    if (isset($data["response"]["location"][0])) {
+                        $api_result = $data["response"]["location"][0]; 
+
+                        $pref_name   = isset($api_result["prefecture"]) ? $api_result["prefecture"] : ""; 
+                        $city_name   = isset($api_result["city"]) ? $api_result["city"] : "";       
+
+                        $town_name   = isset($api_result["town"]) ? $api_result["town"] : "";
+                        $sub_street  = isset($api_result["street"]) ? $api_result["street"] : "";
+                        $street_name = $town_name . $sub_street; 
+
+
+                        $stmt = $pdo->prepare("SELECT prefecture_id FROM prefecture WHERE prefecture = ?");
+                        $stmt->execute([$pref_name]);
+                        $pref = $stmt->fetch();
+
+                        if (!$pref) {
+                            $stmt = $pdo->prepare("INSERT INTO prefecture (prefecture) VALUES (?)");
+                            $stmt->execute([$pref_name]);
+                            $prefecture_id = $pdo->lastInsertId();
+                        } else {
+                            $prefecture_id = $pref["prefecture_id"];
+                        }
+                        
+                       
+                        $stmt = $pdo->prepare("SELECT city_id FROM city WHERE city = ?");
+                        $stmt->execute([$city_name]);
+                        $city = $stmt->fetch();
+
+                        if (!$city) {
+                            $stmt = $pdo->prepare("INSERT INTO city (city) VALUES (?)");
+                            $stmt->execute([$city_name]);
+                            $city_id = $pdo->lastInsertId();
+                        } else {
+                            $city_id = $city["city_id"];
+                        }
+
+                        $stmt = $pdo->prepare("SELECT post_number FROM address WHERE post_number = ?");
+                        $stmt->execute([$search_post_number]);
+                        if (!$stmt->fetch()) {
+                            $stmt = $pdo->prepare("INSERT INTO address (post_number, prefecture_id, city_id, street) VALUES (?,?,?,?)");
+                            $stmt->execute([$search_post_number, $prefecture_id, $city_id, $street_name]);
+                        }
+                        
+                        $display_result = "📍 " . $pref_name . $city_name . $street_name;
+                    } else {
+                        $display_result = "❌ 該当する郵便番号が見つかりませんでした";
+                    }
+                } else {
+                    $display_result = "❌ API通信エラーが発生しました";
+                }
             }
-        } else {
-            echo "APIへの接続に失敗しました。";
+        } catch (PDOException $e) {
+        
+            $display_result = "❌ DBエラー: " . $e->getMessage();
         }
-
-    } catch (PDOException $e) {
-        echo "データベースエラーが発生しました。";
+    } else {
+        $display_result = "❌ 郵便番号を7桁の数字で入力してください";
     }
-
-} else {
-    echo "郵便番号は7桁の数字で入力してください。";
 }
-
+?>
