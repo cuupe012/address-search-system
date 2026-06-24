@@ -16,18 +16,23 @@ require_once("search_address.php");
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             background-color: #fff;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         
         form {
             display: block;
+            width: 100%;
+            max-width: 800px;
         }
 
         .system-panel {
-            width: 800px;
+            width: 100%;
+            max-width: 800px;
             height: 500px;
             border: 1px solid #333;
             background: linear-gradient(180deg, #fff 0%, #7f7f7f 100%);
@@ -36,6 +41,7 @@ require_once("search_address.php");
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            padding: 20px;
         }
 
         .title {
@@ -105,19 +111,26 @@ require_once("search_address.php");
             background-color: #fff;
             border: 2px solid #333;
             border-radius: 15px;
-            width: 550px;
+            width: 100%;
+            max-width: 550px;
             height: 55px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 15px;
             color: #7f7f7f;
+            box-sizing: border-box;
+            padding: 0 15px; 
+            overflow-x: auto;
+            white-space: nowrap;
         }
 
         .copy-container {
-            width: 550px;
+            width: 100%;
+            max-width: 550px;
             text-align: left;
             margin-top: 10px;
+            box-sizing: border-box;
         }
 
         .copy-link {
@@ -129,6 +142,34 @@ require_once("search_address.php");
             color: #fff;
             padding: 0;
         }
+
+
+        @media (max-width: 500px) {
+            .title {
+                font-size: 25px; 
+            }
+            .subtitle {
+                font-size: 15px; 
+                margin-bottom: 25px;
+            }
+
+            .search-area {
+                width: 100%;
+                max-width: 320px;
+                gap: 10px;
+                padding-left: 0;
+                margin-bottom: 30px;
+            }
+
+            .zip-input {
+                width: 100%;
+                flex: 1;
+            }
+        }
+
+
+
+
     </style>
 </head>
 
