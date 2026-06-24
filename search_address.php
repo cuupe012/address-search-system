@@ -25,3 +25,6 @@ try{
     echo "データベース検索中にエラーが発生しました。<br>";
     echo "エラー内容:".$e->getMessage();
 }
+
+
+//sdfsfsdf
