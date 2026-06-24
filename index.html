@@ -139,8 +139,8 @@
 
         <div class="search-area">
             <span class="postal-mark">〒</span>
-            <input type="text" class="zip-input" placeholder="郵便番号を入力">
-            <button class="search-btn">🔍</button>
+            <input type="text" id="zipcode" class="zip-input" placeholder="郵便番号を入力">
+            <button class="search-btn" onclick="searchAddress()">🔍</button>
         </div>
 
         <div class="result-box" id="target-text">検索結果</div>
@@ -171,6 +171,31 @@
                 alert('コピーに失敗しました: ' + err);
             });
         }
+
+        function searchAddress() {
+    const zipcode = document.getElementById('zipcode').value;
+    const resultBox = document.getElementById('target-text');
+
+    if (!zipcode) {
+        resultBox.innerText = '郵便番号を入力してください。';
+        return;
+    }
+
+    // 裏側で search_address.php を呼び出す（Ajax通信）
+    fetch('search_address.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'zipcode=' + encodeURIComponent(zipcode)
+    })
+    .then(response => response.text())
+    .then(data => {
+        // PHPから返ってきた結果を、白いボックスの中にそのまま表示する
+        resultBox.innerHTML = data;
+    })
+    .catch(error => {
+        resultBox.innerText = 'エラーが発生しました。';
+    });
+}
     </script>
 
 </body>

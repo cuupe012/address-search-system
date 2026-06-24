@@ -10,7 +10,7 @@ try{
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
     
-    echo "データベースの接続に成功しました！！！<br>";
+    //echo "データベースの接続に成功しました！！！<br>";
 
 }catch(PDOException $e){
     echo "データベースへの接続に失敗しました.....<br>";
