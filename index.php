@@ -182,7 +182,7 @@ require_once("search_address.php");
 
             <div class="search-area">
                 <span class="postal-mark">〒</span>
-                <input type="text" name="zipcode" class="zip-input" placeholder="郵便番号を入力" value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>">
+                <input type="text" name="zipcode" class="zip-input" id="zipcode" placeholder="郵便番号を入力" maxlength="7" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>">
                 
                 <button type="submit" class="search-btn">🔍</button>
             </div>

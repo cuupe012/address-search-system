@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['zipcode'])) {
             }
         } catch (PDOException $e) {
         
-            $display_result = "❌ DBエラー: " . $e->getMessage();
+            $display_result = "❌ DBエラーが発生しました";
         }
     } else {
         $display_result = "❌ 郵便番号を7桁の数字で入力してください";
