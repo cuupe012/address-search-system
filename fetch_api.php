@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 
 require_once("db_connect.php");
 
@@ -68,4 +68,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['zipcode'])) {
         }
     }
 }
-?>
+?> -->
