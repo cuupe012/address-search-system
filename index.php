@@ -32,7 +32,6 @@ require_once("search_address.php");
 
         .system-panel {
             width: 100%;
-            max-width: 800px;
             height: 500px;
             border: 1px solid #333;
             background: linear-gradient(180deg, #fff 0%, #7f7f7f 100%);

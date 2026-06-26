@@ -3,12 +3,13 @@ require_once("db_connect.php");
 
 $display_result = "検索結果";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($_POST['zipcode'])) {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $zip_converted = mb_convert_kana(trim($_POST['zipcode']), "n", "UTF-8");
-    $search_post_number = str_replace(["-", "ー", "－"], "", $zip_converted);
+    $search_post_number = mb_convert_kana(trim($_POST['zipcode'] ?? ''), "n", "UTF-8");
+    
     
     if (preg_match("/^[0-9]{7}$/", $search_post_number)) {
+
         try {
            
             $log_sql = "INSERT INTO search_logs (post_number) VALUES (?)";
