@@ -1,7 +1,5 @@
 <?php
-
 require_once("search_address.php");
-
 ?>
 
 <!DOCTYPE html>
@@ -58,11 +56,24 @@ require_once("search_address.php");
             color: #222;
         }
 
+        .input-group{
+            display: flex;
+            flex-direction: column;
+            align-items: center;      
+            justify-content: center;
+            width: 300px;             
+            padding: 6px 10px;        
+            border: 1.5px solid #333; 
+            border-radius: 20px;     
+            background-color: #f2f2f2;
+            box-sizing: border-box;
+        }
+
         .search-area {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 45px;
             padding-left: 15px;
         }
@@ -73,14 +84,16 @@ require_once("search_address.php");
         }
 
         .zip-input {
-            width: 240px;
-            padding: 10px 15px;
+            width: 100%;
+            max-width: 100%;
+            padding: 0px;
             font-size: 15px;
-            border: 1.5px solid #333;
-            border-radius: 20px;
-            background-color: #f2f2f2;
+            border: none;
+            background: transparent;
             text-align: center;
             outline: none;
+            display: block;
+            height: 21px;
         }
 
         .search-btn {
@@ -104,6 +117,15 @@ require_once("search_address.php");
             background-color:  #8d8d8d;
             box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
             transform: scale(0.95);
+        }
+
+        .form-notice {
+            display: block;     
+            font-size: 10px;
+            color: #666;
+            margin: 2px 0 0 0;
+            line-height: 1;
+            pointer-events: none;
         }
 
         .result-box {
@@ -181,11 +203,15 @@ require_once("search_address.php");
 
             <div class="search-area">
                 <span class="postal-mark">〒</span>
-                
-                <input type="text" name="zipcode" class="zip-input" id="zipcode" placeholder="郵便番号を入力" maxlength="7" inputmode="numeric" 
-                oninput="this.value = this.value.replace(/[^0-9０-９]/g, '');" value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>">
 
+                <div class="input-group">
+                    <input type="text" name="zipcode" class="zip-input" id="zipcode" placeholder="郵便番号を入力" maxlength="7" inputmode="numeric" 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+                           value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>">
                 
+                    <p class="form-notice">＊ハイフン不要</p>
+                </div>
+
                 <button type="submit" class="search-btn">🔍</button>
             </div>
 
@@ -196,7 +222,9 @@ require_once("search_address.php");
             </div>
         </div>
     </form>
-
+<body>
+    
+    
 <script>
     function copyText(event) {
         event.preventDefault();
@@ -214,7 +242,7 @@ require_once("search_address.php");
                 btn.innerHTML = '📋 <u>Copy</u>';
             }, 1500);
         }).catch(err => {
-            alert('コピーに失敗しました: ' + err);
+            alert('コピーに失敗しました');
         });
     }
 </script>
