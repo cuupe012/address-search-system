@@ -3,8 +3,9 @@ require_once("search_address.php");
 ?>
 
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja"> 
 <head>
+    <!-- 文字化けを防ぐ、レスポンシブデザインのコード -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Address Search System</title>
@@ -23,7 +24,6 @@ require_once("search_address.php");
 
         
         form {
-            display: block;
             width: 100%;
             max-width: 800px;
         }
@@ -56,6 +56,7 @@ require_once("search_address.php");
             color: #222;
         }
 
+        /* 郵便番号入力エリア */
         .input-group{
             display: flex;
             flex-direction: column;
@@ -63,12 +64,13 @@ require_once("search_address.php");
             justify-content: center;
             width: 300px;             
             padding: 6px 10px;        
-            border: 1.5px solid #333; 
+            border: 1.5px solid #333;
             border-radius: 20px;     
             background-color: #f2f2f2;
             box-sizing: border-box;
         }
 
+        /* 検索ボタン含むエリア */
         .search-area {
             display: flex;
             align-items: center;
@@ -77,25 +79,26 @@ require_once("search_address.php");
             margin-bottom: 45px;
             padding-left: 15px;
         }
-
+        
+        /* 〒マーク */
         .postal-mark {
             font-size: 25px;
             font-weight: bold;
         }
 
+        /* 郵便番号入力欄 */
         .zip-input {
             width: 100%;
             max-width: 100%;
-            padding: 0px;
             font-size: 15px;
             border: none;
             background: transparent;
             text-align: center;
             outline: none;
-            display: block;
-            height: 21px;
+            height: 20px;
         }
 
+        /* 検索ボタン */
         .search-btn {
             background-color: #fff;
             border: 1.5px solid #333;
@@ -109,16 +112,19 @@ require_once("search_address.php");
             justify-content: center;
         }
             
+        /* ボタンにカーソルを乗せたとき */
         .search-btn:hover {
             background-color: #f0f0f0;
         } 
 
+        /* ボタンをクリックしたとき */
         .search-btn:active {
             background-color:  #8d8d8d;
             box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
             transform: scale(0.95);
         }
 
+        /* ハイフン不要 */
         .form-notice {
             display: block;     
             font-size: 10px;
@@ -128,6 +134,7 @@ require_once("search_address.php");
             pointer-events: none;
         }
 
+        /* 検索結果 */
         .result-box {
             background-color: #fff;
             border: 2px solid #333;
@@ -141,11 +148,11 @@ require_once("search_address.php");
             font-size: 15px;
             color: #7f7f7f;
             box-sizing: border-box;
-            padding: 0 15px; 
             overflow-x: auto;
             white-space: nowrap;
         }
 
+        /* コピーボタンの配置 */
         .copy-container {
             width: 100%;
             max-width: 550px;
@@ -154,6 +161,7 @@ require_once("search_address.php");
             box-sizing: border-box;
         }
 
+        /* コピーボタンの設定 */
         .copy-link {
             background: none;
             border: none;
@@ -164,7 +172,7 @@ require_once("search_address.php");
             padding: 0;
         }
 
-
+        /* スマホでの見た目調節 */
         @media (max-width: 500px) {
             .title {
                 font-size: 25px; 
@@ -195,7 +203,7 @@ require_once("search_address.php");
 </head>
 
 <body>
-    
+    <!-- データをサーバーに送る-->
     <form method="POST" action="">
         <div class="system-panel">
             <h1 class="title">Address Search System</h1>
@@ -203,20 +211,25 @@ require_once("search_address.php");
 
             <div class="search-area">
                 <span class="postal-mark">〒</span>
-
-                <div class="input-group">
-                    <input type="text" name="zipcode" class="zip-input" id="zipcode" placeholder="郵便番号を入力" maxlength="7" inputmode="numeric" 
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
-                           value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>">
                 
+
+                <!-- 文字入力欄 -->
+                <div class="input-group">
+                    <input type="text" name="zipcode" class="zip-input" placeholder="郵便番号を入力" maxlength="7" inputmode="numeric" 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+                           value="<?php echo isset($_POST['zipcode']) ? htmlspecialchars($_POST['zipcode'], ENT_QUOTES, 'UTF-8') : ''; ?>"
+                    >
                     <p class="form-notice">＊ハイフン不要</p>
                 </div>
 
+                <!-- 検索ボタン -->
                 <button type="submit" class="search-btn">🔍</button>
             </div>
 
+           <!-- 検索結果出力 -->
             <div class="result-box" id="target-text"><?php echo isset($display_result) ? htmlspecialchars($display_result, ENT_QUOTES, 'UTF-8') : '検索結果'; ?></div>
 
+            <!-- コピー機能 -->
             <div class="copy-container">
                 <button type="button" class="copy-link" onclick="copyText(event)">📃<u>Copy</u></button>
             </div>
@@ -224,18 +237,21 @@ require_once("search_address.php");
     </form>
 <body>
     
-    
+<!-- コピー機能のJavaScript -->
 <script>
     function copyText(event) {
         event.preventDefault();
         const boxElement = document.getElementById('target-text');            
         const fullText = boxElement.innerText;
         
-        if(fullText === "検索結果" || fullText === "検索結果がここに表示されます" || fullText.includes("❌")) return;
-            
+        // コピーしない条件
+        if(fullText === "検索結果" || fullText.includes("❌")) return;
+        // コピーする文字の整理
         const addressText = fullText.replace('📍', '').trim();
 
+        // クリップボードにコピーする
         navigator.clipboard.writeText(addressText).then(() => {
+            
             const btn = document.querySelector('.copy-link');
             btn.innerHTML = '✅ <u>Copied!</u>';
             setTimeout(() => {
